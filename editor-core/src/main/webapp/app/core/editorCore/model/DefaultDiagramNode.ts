@@ -12,7 +12,9 @@ export class DefaultDiagramNode implements DiagramNode {
     private constPropertiesPack: PropertiesPack;
     private changeableProperties: Map<String, Property>;
     private imagePath: string;
-    private propertyEditElement: PropertyEditElement;
+    private propertyEditElements: PropertyEditElement[];
+    private delta = 20;
+    private topIndent = 30;
 
     private resizeParameters = {
         isTopResizing: false,
@@ -62,6 +64,7 @@ export class DefaultDiagramNode implements DiagramNode {
             jQuery.extend(jointObjectAttributes, {id: id});
         }
 
+        this.propertyEditElements = [];
         this.jointObject = new joint.shapes.devs.ImageWithPorts(jointObjectAttributes);
         this.changeableProperties = properties;
         this.imagePath = imagePath;
@@ -71,8 +74,8 @@ export class DefaultDiagramNode implements DiagramNode {
         cellView.options.interactive = true;
         var bbox = cellView.getBBox();
         var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - 50;
-        this.propertyEditElement.setPosition(newX, newY);
+        var newY = bbox.y + bbox.height - this.topIndent;
+        this.setPropertyEditElementsPosition(newX, newY);
 
         if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing)
         {
@@ -99,17 +102,35 @@ export class DefaultDiagramNode implements DiagramNode {
         }
     }
 
-    initPropertyEditElements(zoom: number): void {
-        var parentPosition = this.getJointObjectPagePosition(zoom);
-        this.propertyEditElement = new PropertyEditElement(this.logicalId, this.jointObject.id,
-            this.changeableProperties);
-        var propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50)/2);
-        var propertyEditElementY = parentPosition.y + this.boundingBox.height - 50;
-        this.propertyEditElement.setPosition(propertyEditElementX, propertyEditElementY);
+    setPropertyEditElementsPosition(x : number, y : number) : void {
+        let propertiesCount = 0;
+
+        for (let i in this.propertyEditElements) {
+            this.propertyEditElements[i].setPosition(x, y - this.delta*propertiesCount);
+            propertiesCount++;
+        }
     }
 
-    getPropertyEditElement(): PropertyEditElement {
-        return this.propertyEditElement;
+    initPropertyEditElements(zoom: number): void {
+        var parentPosition = this.getJointObjectPagePosition(zoom);
+        var propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50)/2);
+        var propertyEditElementY = parentPosition.y + this.boundingBox.height - this.topIndent;
+
+        for (var propertyKey in this.changeableProperties) {
+            var property = this.changeableProperties[propertyKey];
+            if (property.type === "string") {
+                let propertyEditElement = new PropertyEditElement(this.logicalId, this.jointObject.id,
+                                                                  propertyKey, property);
+
+                this.propertyEditElements.push(propertyEditElement);
+            }
+        }
+
+        this.setPropertyEditElementsPosition(propertyEditElementX, propertyEditElementY);
+    }
+
+    getPropertyEditElements(): PropertyEditElement[] {
+        return this.propertyEditElements;
     }
 
     getLogicalId(): string {
@@ -142,8 +163,8 @@ export class DefaultDiagramNode implements DiagramNode {
         // this.propertyEditElement.setPosition(position.x, position.y);
         var bbox = cellView.getBBox();
         var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - 50;
-        this.propertyEditElement.setPosition(newX, newY);
+        var newY = bbox.y + bbox.height - this.topIndent;
+        this.setPropertyEditElementsPosition(newX, newY);
     }
 
     setSize(width: number, height: number, cellView : joint.dia.CellView): void {
@@ -151,8 +172,8 @@ export class DefaultDiagramNode implements DiagramNode {
         model.resize(width - 2, height);
         var bbox = cellView.getBBox();
         var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - 50;
-        this.propertyEditElement.setPosition(newX, newY);
+        var newY = bbox.y + bbox.height - this.topIndent;
+        this.setPropertyEditElementsPosition(newX, newY);
     }
 
     getImagePath(): string {

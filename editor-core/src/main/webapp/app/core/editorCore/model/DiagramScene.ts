@@ -121,8 +121,11 @@ export class DiagramScene extends joint.dia.Paper {
         });
 
         node.getJointObject().remove();
-        if (node.getPropertyEditElement()) {
-            node.getPropertyEditElement().getHtmlElement().remove();
+        if (node.getPropertyEditElements()) {
+            var editElements = node.getPropertyEditElements();
+            for (let i in editElements) {
+                editElements[i].getHtmlElement().remove();
+            }
         }
         delete this.nodesMap[nodeId];
     }
@@ -159,8 +162,11 @@ export class DiagramScene extends joint.dia.Paper {
         this.nodesMap[node.getJointObject().id] = node;
         this.graph.addCell(node.getJointObject());
         node.initPropertyEditElements(this.zoom);
-        if (node.getPropertyEditElement()) {
-            node.getPropertyEditElement().getHtmlElement().insertBefore("#" + this.getId());
+        if (node.getPropertyEditElements()) {
+            var editElements = node.getPropertyEditElements();
+            for (let i in editElements) {
+                editElements[i].getHtmlElement().insertBefore("#" + this.getId());
+            }
         }
     }
 

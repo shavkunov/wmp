@@ -15,17 +15,11 @@ export class PropertyEditElement {
 
     private htmlElement;
 
-    constructor(logicalId: string, jointObjectId: string, properties: Map<String, Property>) {
+    constructor(logicalId: string, jointObjectId: string, propertyKey : string, property : Property) {
         var propertiesHtml: string = "";
 
-        for (var propertyKey in properties) {
-            var property: Property = properties[propertyKey];
-            if (property.type === "string") {
-                propertiesHtml += StringUtils.format(PropertyEditElement.propertyTemplate,
-                    propertyKey + "-" + logicalId, jointObjectId, propertyKey, property.name, property.value);
-                break;
-            }
-        }
+        propertiesHtml += StringUtils.format(PropertyEditElement.propertyTemplate,
+            propertyKey + "-" + logicalId, jointObjectId, propertyKey, property.name, property.value);
 
         this.htmlElement = $(StringUtils.format(PropertyEditElement.template, propertiesHtml));
         this.initInputSize();

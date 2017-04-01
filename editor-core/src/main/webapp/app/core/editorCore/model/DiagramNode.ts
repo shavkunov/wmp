@@ -8,7 +8,7 @@ export interface DiagramNode extends DiagramElement {
     getSize() : string;
     setPosition(x: number, y: number, zoom: number, cellView : joint.dia.CellView): void;
     setSize(width: number, height: number, cellView : joint.dia.CellView): void;
-    getPropertyEditElement(): PropertyEditElement;
+    getPropertyEditElements(): PropertyEditElement[];
     initPropertyEditElements(zoom: number): void;
     initResize(bbox, x: number, y: number, paddingPercent) : void;
     completeResize() : void;

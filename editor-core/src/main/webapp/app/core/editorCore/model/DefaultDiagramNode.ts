@@ -3,18 +3,48 @@ import {PropertiesPack} from "./PropertiesPack";
 import {PropertyEditElement} from "./PropertyEditElement";
 import {UIDGenerator} from "../controller/UIDGenerator";
 import {DiagramNode} from "./DiagramNode";
+import {DiagramContainer} from "./DiagramContainer";
+
+class ImageWithPorts extends joint.shapes.basic.Generic {
+    constructor(portsModelInterface: joint.shapes.basic.PortsModelInterface) {
+        super(portsModelInterface);
+
+        this.set("markup", '<g class="rotatable"><g class="scalable"><rect class ="outer"/><image/></g><text/><g class="inPorts"/><g class="outPorts"/></g>')
+        this.set("portMarkup", '<g class="port<%= id %>"><circle/><text/></g>')
+    }
+
+    getPortAttrs(portName: string, index: number, total: number, selector: string, type: string): {} {
+
+        var attrs = {};
+
+        var portClass = 'port' + index;
+        var portSelector = selector + '>.' + portClass;
+        var portTextSelector = portSelector + '>text';
+        var portCircleSelector = portSelector + '>circle';
+
+        attrs[portTextSelector] = { text: portName };
+        attrs[portCircleSelector] = { port: { id: portName || _.uniqueId(type), type: type } };
+        attrs[portSelector] = { ref: 'rect', 'ref-x': (index + 0.5) * (1 / total) };
+
+        if (selector === '.outPorts') {
+            attrs[portSelector]['ref-dx'] = 0;
+        }
+
+        return attrs;
+    }
+};
+
 export class DefaultDiagramNode implements DiagramNode {
 
     private logicalId: string;
-    private jointObject: joint.shapes.devs.ImageWithPorts;
+    private jointObject: ImageWithPorts;
     private name: string;
     private type: string;
     private constPropertiesPack: PropertiesPack;
     private changeableProperties: Map<String, Property>;
     private imagePath: string;
-    private propertyEditElements: PropertyEditElement[];
-    private delta = 20;
-    private topIndent = 30;
+    private propertyEditElement: PropertyEditElement;
+    private parentNode: DiagramContainer;
 
     private resizeParameters = {
         isTopResizing: false,
@@ -53,7 +83,7 @@ export class DefaultDiagramNode implements DiagramNode {
             position: { x: x, y: y },
             size: { width: this.boundingBox.width, height: this.boundingBox.height },
             outPorts: [''],
-            attrs: {
+            attrs: <{ [selector: string]: { [key: string]: string} }> {
                 image: {
                     'xlink:href': imagePath
                 },
@@ -64,18 +94,18 @@ export class DefaultDiagramNode implements DiagramNode {
             jQuery.extend(jointObjectAttributes, {id: id});
         }
 
-        this.propertyEditElements = [];
-        this.jointObject = new joint.shapes.devs.ImageWithPorts(jointObjectAttributes);
+        this.jointObject = new ImageWithPorts(jointObjectAttributes);
         this.changeableProperties = properties;
         this.imagePath = imagePath;
+        this.parentNode = null;
     }
 
     pointermove(cellView, evt, x, y): void {
         cellView.options.interactive = true;
         var bbox = cellView.getBBox();
         var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - this.topIndent;
-        this.setPropertyEditElementsPosition(newX, newY);
+        var newY = bbox.y + bbox.height - 50;
+        this.propertyEditElement.setPosition(newX, newY);
 
         if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing)
         {
@@ -88,49 +118,29 @@ export class DefaultDiagramNode implements DiagramNode {
 
             if (this.resizeParameters.isBottomResizing) {
                 if (this.resizeParameters.isRightResizing) {
-                    this.boundingBox.width = bbox.width + diffX;
-                    this.boundingBox.height = bbox.height + diffY;
+                    this.boundingBox.width += diffX;
+                    this.boundingBox.height += diffY;
                 } else {
-                    this.boundingBox.width = bbox.width;
-                    this.boundingBox.height = bbox.height + diffY;
+                    this.boundingBox.height += diffY;
                 }
             } else if (this.resizeParameters.isRightResizing) {
-                this.boundingBox.width = bbox.width + diffX;
-                this.boundingBox.height = bbox.height;
+                this.boundingBox.width += diffX;
             }
-            model.resize(this.boundingBox.width - 2, this.boundingBox.height);
-        }
-    }
-
-    setPropertyEditElementsPosition(x : number, y : number) : void {
-        let propertiesCount = 0;
-
-        for (let i in this.propertyEditElements) {
-            this.propertyEditElements[i].setPosition(x, y - this.delta*propertiesCount);
-            propertiesCount++;
+            model.resize(this.boundingBox.width, this.boundingBox.height);
         }
     }
 
     initPropertyEditElements(zoom: number): void {
         var parentPosition = this.getJointObjectPagePosition(zoom);
+        this.propertyEditElement = new PropertyEditElement(this.logicalId, this.jointObject.id,
+            this.changeableProperties);
         var propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50)/2);
-        var propertyEditElementY = parentPosition.y + this.boundingBox.height - this.topIndent;
-
-        for (var propertyKey in this.changeableProperties) {
-            var property = this.changeableProperties[propertyKey];
-            if (property.type === "string") {
-                let propertyEditElement = new PropertyEditElement(this.logicalId, this.jointObject.id,
-                                                                  propertyKey, property);
-
-                this.propertyEditElements.push(propertyEditElement);
-            }
-        }
-
-        this.setPropertyEditElementsPosition(propertyEditElementX, propertyEditElementY);
+        var propertyEditElementY = parentPosition.y + this.boundingBox.height - 50;
+        this.propertyEditElement.setPosition(propertyEditElementX, propertyEditElementY);
     }
 
-    getPropertyEditElements(): PropertyEditElement[] {
-        return this.propertyEditElements;
+    getPropertyEditElement(): PropertyEditElement {
+        return this.propertyEditElement;
     }
 
     getLogicalId(): string {
@@ -143,6 +153,10 @@ export class DefaultDiagramNode implements DiagramNode {
 
     getType(): string {
         return this.type;
+    }
+
+    getParentNode(): DiagramContainer {
+        return this.parentNode;
     }
 
     getX(): number {
@@ -163,8 +177,8 @@ export class DefaultDiagramNode implements DiagramNode {
         // this.propertyEditElement.setPosition(position.x, position.y);
         var bbox = cellView.getBBox();
         var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - this.topIndent;
-        this.setPropertyEditElementsPosition(newX, newY);
+        var newY = bbox.y + bbox.height - 50;
+        this.propertyEditElement.setPosition(newX, newY);
     }
 
     setSize(width: number, height: number, cellView : joint.dia.CellView): void {
@@ -172,15 +186,25 @@ export class DefaultDiagramNode implements DiagramNode {
         model.resize(width - 2, height);
         var bbox = cellView.getBBox();
         var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - this.topIndent;
-        this.setPropertyEditElementsPosition(newX, newY);
+        var newY = bbox.y + bbox.height - 50;
+        this.propertyEditElement.setPosition(newX, newY);
+    }
+
+    setParentNode(parent: DiagramContainer): void {
+        if (parent === this.parentNode)
+            return;
+        if (this.parentNode)
+            this.parentNode.getJointObject().unembed(this.getJointObject());
+        this.parentNode = parent;
+        if (parent)
+            parent.getJointObject().embed(this.getJointObject());
     }
 
     getImagePath(): string {
         return this.imagePath;
     }
 
-    getJointObject() {
+    getJointObject(): joint.shapes.basic.Generic {
         return this.jointObject;
     }
 

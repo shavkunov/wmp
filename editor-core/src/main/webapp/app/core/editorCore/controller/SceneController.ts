@@ -294,6 +294,7 @@ export class SceneController {
                 }
                 node.completeResize();
                 cellView.unhighlight(cellView.model.id);
+
             }
         }
     }

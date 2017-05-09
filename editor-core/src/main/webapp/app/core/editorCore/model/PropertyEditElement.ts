@@ -1,55 +1,74 @@
-import {StringUtils} from "../../../utils/StringUtils";
 import {Property} from "./Property";
+
 export class PropertyEditElement {
+    public static fontSize = 20;
 
-    private static propertyTemplate = "" +
-        "<span>{3}:</span> " +
-        "<input class='{0} property-edit-input' data-id='{1}' data-type='{2}' " +
-        "style='border: dashed 1px; padding-left: 2px; margin-bottom: 1px' value='{4}'>" +
-        "<br>";
+    private textObject: joint.shapes.basic.Text;
+    private lastX: number;
+    private lastY: number;
 
-    private static template: string = "" +
-        "<div class='property-edit-element' style='position: absolute; text-align: left; z-index: 1;'>" +
-        "   {0}" +
-        "</div>";
+    /**
+     * Creates property at specified coordinates with specified name and value.
+     * @param x x axis coordinate
+     * @param y y axis coordinate
+     * @param property property to set
+     * @param graph graph for setting text on the plane.
+     */
+    constructor(x : number, y : number, property : Property, graph : joint.dia.Graph) {
+        console.log("Property edit element constructor");
 
-    private htmlElement;
+        this.lastX = x;
+        this.lastY = y;
+        this.setProperty(property, graph);
 
-    constructor(logicalId: string, jointObjectId: string, propertyKey : string, property : Property) {
-        var propertiesHtml: string = "";
-
-        propertiesHtml += StringUtils.format(PropertyEditElement.propertyTemplate,
-            propertyKey + "-" + logicalId, jointObjectId, propertyKey, property.name, property.value);
-
-        this.htmlElement = $(StringUtils.format(PropertyEditElement.template, propertiesHtml));
-        this.initInputSize();
-        this.initInputAutosize();
+        this.textObject.on("cell:pointermove", (cellView, event, x, y): void => {
+            this.setPosition(x, y);
+        });
     }
 
-    public getHtmlElement() {
-        return this.htmlElement;
+    public getTextObject() : joint.shapes.basic.Text {
+        return this.textObject;
+    }
+
+    getX(): number {
+        return (this.textObject.get("position"))['x'];
+    }
+
+    getY(): number {
+        return (this.textObject.get("position"))['y'];
     }
 
     public setPosition(x: number, y: number): void {
-        this.htmlElement.css({ left: x - 25, top: y + 55 });
+        console.log("Setting text position with x : " + x + " and y : " + y);
+        this.textObject.position(x, y);
     }
 
-    private initInputSize(): void {
-        this.htmlElement.find('input').each(function(index) {
-                $(this).css("width", StringUtils.getInputStringSize(this));
-            }
-        );
+    public setProperty(property : Property, graph : joint.dia.Graph): void {
+        var width: number = 0.5 * (property.name.length + property.value.length) * PropertyEditElement.fontSize;
+        var height: number = PropertyEditElement.fontSize;
 
-    }
+        if (this.textObject) {
+            this.lastX = this.getX();
+            this.lastY = this.getY();
+            this.textObject.remove();
+        }
 
-    private initInputAutosize(): void {
-        this.htmlElement.find('input').on('input', function(event) {
-            $(this).trigger('autosize');
+        this.textObject = new  joint.shapes.basic.Text({
+            position: { x: this.lastX, y: this.lastY },
+            size: { width: width, height: height },
+            attrs: {
+                text: {
+                    text: property.name + " : " + property.value,
+                },
+            },
         });
 
-        this.htmlElement.find('input').on('autosize', function(event) {
-            $(this).css("width", StringUtils.getInputStringSize(this));
-        });
+        graph.addCell(this.textObject);
     }
 
+    public setRelativePosition(deltaX : number, deltaY : number): void {
+        this.lastX = this.getX() + deltaX;
+        this.lastY = this.getY() + deltaY;
+        this.setPosition(this.lastX, this.lastY);
+    }
 }

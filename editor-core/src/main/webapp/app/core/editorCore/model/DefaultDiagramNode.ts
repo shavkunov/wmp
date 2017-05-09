@@ -9,7 +9,7 @@ class ImageWithPorts extends joint.shapes.basic.Generic {
     constructor(portsModelInterface: joint.shapes.basic.PortsModelInterface) {
         super(portsModelInterface);
 
-        this.set("markup", '<g class="rotatable"><g class="scalable"><rect class ="outer"/><image/></g><text/><g class="inPorts"/><g class="outPorts"/></g>')
+        this.set("markup", '<g class="rotatable"><g class="scalable"><rect class ="outer"/><image/></g><text/><g class="inPorts"/><g class="outPorts"/></g>');
         this.set("portMarkup", '<g class="port<%= id %>"><circle/><text/></g>')
     }
 
@@ -32,10 +32,8 @@ class ImageWithPorts extends joint.shapes.basic.Generic {
 
         return attrs;
     }
-};
-
+}
 export class DefaultDiagramNode implements DiagramNode {
-
     private logicalId: string;
     private jointObject: ImageWithPorts;
     private name: string;
@@ -43,8 +41,9 @@ export class DefaultDiagramNode implements DiagramNode {
     private constPropertiesPack: PropertiesPack;
     private changeableProperties: Map<String, Property>;
     private imagePath: string;
-    private propertyEditElement: PropertyEditElement;
+    private propertyEditElements: Map<String, PropertyEditElement>;
     private parentNode: DiagramContainer;
+    private graph : joint.dia.Graph;
 
     private resizeParameters = {
         isTopResizing: false,
@@ -61,6 +60,11 @@ export class DefaultDiagramNode implements DiagramNode {
     private boundingBox = {
         width: 0,
         height: 0,
+    };
+
+    private lastPointermoveCursor = {
+        x: 0,
+        y: 0,
     };
 
     constructor(name: string, type: string, x: number, y: number, width: number, height: number,
@@ -94,6 +98,8 @@ export class DefaultDiagramNode implements DiagramNode {
             jQuery.extend(jointObjectAttributes, {id: id});
         }
 
+        console.log("default diagram node constructor");
+        this.propertyEditElements = new Map();
         this.jointObject = new ImageWithPorts(jointObjectAttributes);
         this.changeableProperties = properties;
         this.imagePath = imagePath;
@@ -101,18 +107,17 @@ export class DefaultDiagramNode implements DiagramNode {
     }
 
     pointermove(cellView, evt, x, y): void {
+        console.log("Default diagram node pointer move with x : " + x + " and y : " + y);
         cellView.options.interactive = true;
-        var bbox = cellView.getBBox();
-        var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - 50;
-        this.propertyEditElement.setPosition(newX, newY);
+        var diffX = x - this.lastMousePosition.x;
+        var diffY = y - this.lastMousePosition.y;
+        this.lastPointermoveCursor.x = this.getX();
+        this.lastPointermoveCursor.y = this.getY();
+        console.log("Diagram pos in pointermove : " + this.getX() + ", " + this.getY());
 
-        if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing)
-        {
+        if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing) {
             cellView.options.interactive = false;
             var model = <joint.dia.Element> cellView.model;
-            var diffX = x - this.lastMousePosition.x;
-            var diffY = y - this.lastMousePosition.y;
             this.lastMousePosition.x = x;
             this.lastMousePosition.y = y;
 
@@ -130,17 +135,44 @@ export class DefaultDiagramNode implements DiagramNode {
         }
     }
 
-    initPropertyEditElements(zoom: number): void {
+    initPropertyEditElements(zoom: number, graph: joint.dia.Graph): void {
+        this.graph = graph;
         var parentPosition = this.getJointObjectPagePosition(zoom);
-        this.propertyEditElement = new PropertyEditElement(this.logicalId, this.jointObject.id,
-            this.changeableProperties);
-        var propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50)/2);
-        var propertyEditElementY = parentPosition.y + this.boundingBox.height - 50;
-        this.propertyEditElement.setPosition(propertyEditElementX, propertyEditElementY);
+        var propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50));
+        var propertyEditElementY = parentPosition.y + this.boundingBox.height;
+        var delta = PropertyEditElement.fontSize;
+
+        console.log("Init edit elements");
+
+        for (var propertyKey in this.changeableProperties) {
+            var property = this.changeableProperties[propertyKey];
+            if (property.type === "string") {
+                console.log("Init of property with name " + property.name + " and value " + property.value);
+                let x = propertyEditElementX;
+                let y = propertyEditElementY;
+
+                let propertyEditElement = new PropertyEditElement(x, y, property, graph);
+                propertyEditElementY += delta;
+
+
+                this.propertyEditElements[propertyKey] = propertyEditElement;
+            }
+        }
+        console.log("End of init edit elements");
     }
 
-    getPropertyEditElement(): PropertyEditElement {
-        return this.propertyEditElement;
+    getTextProperties() : joint.shapes.basic.Text[] {
+        var textObjects = [];
+
+        for (var propertyKey in this.propertyEditElements) {
+            textObjects.push(this.propertyEditElements[propertyKey].getTextObject());
+        }
+
+        return textObjects;
+    }
+
+    getPropertyEditElements(): Map<String, PropertyEditElement> {
+        return this.propertyEditElements;
     }
 
     getLogicalId(): string {
@@ -171,23 +203,27 @@ export class DefaultDiagramNode implements DiagramNode {
         return String(this.boundingBox.width) + ", " + String(this.boundingBox.height);
     }
 
+    changeTextPosition() : void {
+        var dx =  this.getX() - this.lastPointermoveCursor.x;
+        var dy =  this.getY() - this.lastPointermoveCursor.y;
+        console.log("Diagram pos in changeTextPosition : " + this.getX() + ", " + this.getY());
+        //console.log("Last cursor was at " + this.lastPointermoveCursor.x + ", " + this.lastPointermoveCursor.y);
+        console.log("Change position of text. diffX : " + dx + " diffY : " + dy);
+
+        if (dx !== 0 || dy !== 0) {
+            for (var propertyKey in this.propertyEditElements) {
+                this.propertyEditElements[propertyKey].setRelativePosition(dx, dy);
+            }
+        }
+    }
+
     setPosition(x: number, y: number, zoom: number, cellView : joint.dia.CellView): void {
         this.jointObject.position(x, y);
-        // var position = this.getJointObjectPagePosition(zoom);
-        // this.propertyEditElement.setPosition(position.x, position.y);
-        var bbox = cellView.getBBox();
-        var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - 50;
-        this.propertyEditElement.setPosition(newX, newY);
     }
 
     setSize(width: number, height: number, cellView : joint.dia.CellView): void {
         var model = <joint.dia.Element> cellView.model;
         model.resize(width - 2, height);
-        var bbox = cellView.getBBox();
-        var newX = bbox.x + (<number> (bbox.width - 50)/2);
-        var newY = bbox.y + bbox.height - 50;
-        this.propertyEditElement.setPosition(newX, newY);
     }
 
     setParentNode(parent: DiagramContainer): void {
@@ -212,8 +248,10 @@ export class DefaultDiagramNode implements DiagramNode {
         return this.constPropertiesPack;
     }
 
-    setProperty(key: string, property: Property): void {
+    setProperty(key: string, property: Property ): void {
         this.changeableProperties[key] = property;
+        console.log("Set new text property : " + property.name + " : " + property.value);
+        this.propertyEditElements[key].setProperty(property, this.graph);
         var propertyChangedEvent = new CustomEvent('property-changed', {
             detail: {
                 nodeId: this.getLogicalId(),
@@ -305,5 +343,4 @@ export class DefaultDiagramNode implements DiagramNode {
         return (x <= bbox.x + bbox.width + paddingPercent && x >= bbox.x - paddingPercent &&
         y <= bbox.y + bbox.height + paddingPercent && y >= bbox.y + bbox.height - paddingPercent);
     }
-
 }

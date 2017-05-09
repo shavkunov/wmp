@@ -3,6 +3,7 @@ import {DiagramNode} from "./DiagramNode";
 import {SubprogramNode} from "./SubprogramNode";
 import {DiagramElementListener} from "../controller/DiagramElementListener";
 import {DiagramContainer} from "./DiagramContainer";
+import {PropertyEditElement} from "./PropertyEditElement";
 export class DiagramScene extends joint.dia.Paper {
 
     private htmlId: string;
@@ -128,9 +129,9 @@ export class DiagramScene extends joint.dia.Paper {
 
         node.getJointObject().remove();
         if (node.getPropertyEditElements()) {
-            var editElements = node.getPropertyEditElements();
-            for (let i in editElements) {
-                editElements[i].getHtmlElement().remove();
+            var textElements: Map<String, PropertyEditElement> = node.getPropertyEditElements();
+            for (var propertyKey in textElements) {
+                textElements[propertyKey].getTextObject().remove();
             }
         }
         delete this.nodesMap[nodeId];
@@ -165,15 +166,14 @@ export class DiagramScene extends joint.dia.Paper {
     }
 
     public addNode(node: DiagramNode): void {
+        console.log("Diagram Scene : add node " + node);
         this.nodesMap[node.getJointObject().id] = node;
         this.graph.addCell(node.getJointObject());
-        node.initPropertyEditElements(this.zoom);
-        if (node.getPropertyEditElements()) {
-            var editElements = node.getPropertyEditElements();
-            for (let i in editElements) {
-                editElements[i].getHtmlElement().insertBefore("#" + this.getId());
-            }
-        }
+
+        node.initPropertyEditElements(this.zoom, this.graph);
+        node.getJointObject().on('change:position', function() {
+            node.changeTextPosition();
+        });
     }
 
     public setCurrentLinkType(linkType: string): void {

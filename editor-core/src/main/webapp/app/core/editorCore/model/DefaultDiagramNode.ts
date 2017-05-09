@@ -15,12 +15,12 @@ class ImageWithPorts extends joint.shapes.basic.Generic {
 
     getPortAttrs(portName: string, index: number, total: number, selector: string, type: string): {} {
 
-        var attrs = {};
+        let attrs = {};
 
-        var portClass = 'port' + index;
-        var portSelector = selector + '>.' + portClass;
-        var portTextSelector = portSelector + '>text';
-        var portCircleSelector = portSelector + '>circle';
+        let portClass = 'port' + index;
+        let portSelector = selector + '>.' + portClass;
+        let portTextSelector = portSelector + '>text';
+        let portCircleSelector = portSelector + '>circle';
 
         attrs[portTextSelector] = { text: portName };
         attrs[portCircleSelector] = { port: { id: portName || _.uniqueId(type), type: type } };
@@ -118,11 +118,11 @@ export class DefaultDiagramNode implements DiagramNode {
             $.extend(this.constPropertiesPack.graphical, notDefaultConstProperties.graphical);
         }
 
-        var jointObjectAttributes = {
-            position: { x: x, y: y },
-            size: { width: this.boundingBox.width, height: this.boundingBox.height },
+        let jointObjectAttributes = {
+            position: {x: x, y: y},
+            size: {width: this.boundingBox.width, height: this.boundingBox.height},
             outPorts: [''],
-            attrs: <{ [selector: string]: { [key: string]: string} }> {
+            attrs: <{[selector: string]: {[key: string]: string}}> {
                 image: {
                     'xlink:href': imagePath
                 },
@@ -151,15 +151,15 @@ export class DefaultDiagramNode implements DiagramNode {
     pointermove(cellView, evt, x, y): void {
         console.log("Default diagram node pointer move with x : " + x + " and y : " + y);
         cellView.options.interactive = true;
-        var diffX = x - this.lastMousePosition.x;
-        var diffY = y - this.lastMousePosition.y;
+        let diffX = x - this.lastMousePosition.x;
+        let diffY = y - this.lastMousePosition.y;
         this.lastDiagramPosition.x = this.getX();
         this.lastDiagramPosition.y = this.getY();
         console.log("Diagram pos in pointermove : " + this.getX() + ", " + this.getY());
 
         if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing) {
             cellView.options.interactive = false;
-            var model = <joint.dia.Element> cellView.model;
+            let model = <joint.dia.Element> cellView.model;
             this.lastMousePosition.x = x;
             this.lastMousePosition.y = y;
 
@@ -179,15 +179,15 @@ export class DefaultDiagramNode implements DiagramNode {
 
     initPropertyEditElements(zoom: number, graph: joint.dia.Graph): void {
         this.graph = graph;
-        var parentPosition = this.getJointObjectPagePosition(zoom);
-        var propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50));
-        var propertyEditElementY = parentPosition.y + this.boundingBox.height;
-        var delta = PropertyEditElement.fontSize;
+        let parentPosition = this.getJointObjectPagePosition(zoom);
+        let propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50));
+        let propertyEditElementY = parentPosition.y + this.boundingBox.height;
+        let delta = PropertyEditElement.fontSize;
 
         console.log("Init edit elements");
 
-        for (var propertyKey in this.changeableProperties) {
-            var property = this.changeableProperties[propertyKey];
+        for (let propertyKey in this.changeableProperties) {
+            let property = this.changeableProperties[propertyKey];
             if (property.type === "string") {
                 console.log("Init of property with name " + property.name + " and value " + property.value);
                 let x = propertyEditElementX;
@@ -204,9 +204,9 @@ export class DefaultDiagramNode implements DiagramNode {
     }
 
     getTextProperties() : joint.shapes.basic.Text[] {
-        var textObjects = [];
+        let textObjects = [];
 
-        for (var propertyKey in this.propertyEditElements) {
+        for (let propertyKey in this.propertyEditElements) {
             textObjects.push(this.propertyEditElements[propertyKey].getTextObject());
         }
 
@@ -249,14 +249,14 @@ export class DefaultDiagramNode implements DiagramNode {
      * Changes text position according to new diagram coordinates.
      */
     changeTextPosition() : void {
-        var dx =  this.getX() - this.lastDiagramPosition.x;
-        var dy =  this.getY() - this.lastDiagramPosition.y;
+        let dx = this.getX() - this.lastDiagramPosition.x;
+        let dy = this.getY() - this.lastDiagramPosition.y;
         console.log("Diagram pos in changeTextPosition : " + this.getX() + ", " + this.getY());
         console.log("Change position of text. diffX : " + dx + " diffY : " + dy);
 
         // no need to call it every time.
         if (dx !== 0 || dy !== 0) {
-            for (var propertyKey in this.propertyEditElements) {
+            for (let propertyKey in this.propertyEditElements) {
                 this.propertyEditElements[propertyKey].setRelativePosition(dx, dy);
             }
         }
@@ -267,7 +267,7 @@ export class DefaultDiagramNode implements DiagramNode {
     }
 
     setSize(width: number, height: number, cellView : joint.dia.CellView): void {
-        var model = <joint.dia.Element> cellView.model;
+        let model = <joint.dia.Element> cellView.model;
         model.resize(width - 2, height);
     }
 
@@ -302,7 +302,7 @@ export class DefaultDiagramNode implements DiagramNode {
         this.changeableProperties[key] = property;
         console.log("Set new text property : " + property.name + " : " + property.value);
         this.propertyEditElements[key].setProperty(property, this.graph);
-        var propertyChangedEvent = new CustomEvent('property-changed', {
+        let propertyChangedEvent = new CustomEvent('property-changed', {
             detail: {
                 nodeId: this.getLogicalId(),
                 key: key,
@@ -317,13 +317,13 @@ export class DefaultDiagramNode implements DiagramNode {
     }
 
     private static getDefaultConstPropertiesPack(name: string): PropertiesPack {
-        var logical: Map<String, Property> = this.initConstLogicalProperties(name);
-        var graphical: Map<String, Property> = this.initConstGraphicalProperties(name);
+        let logical: Map<String, Property> = this.initConstLogicalProperties(name);
+        let graphical: Map<String, Property> = this.initConstGraphicalProperties(name);
         return new PropertiesPack(logical, graphical);
     }
 
     private static initConstLogicalProperties(name: string): Map<String, Property> {
-        var logical: Map<String, Property> = new Map<String, Property>();
+        let logical: Map<String, Property> = new Map<String, Property>();
         logical["name"] = new Property("name", "QString", name);
         logical["from"] = new Property("from", "qReal::Id", "qrm:/ROOT_ID/ROOT_ID/ROOT_ID/ROOT_ID");
         logical["linkShape"] = new Property("linkShape", "int", "0");
@@ -333,7 +333,7 @@ export class DefaultDiagramNode implements DiagramNode {
     }
 
     private static initConstGraphicalProperties(name: string): Map<String, Property> {
-        var graphical: Map<String, Property> = new Map<String, Property>();
+        let graphical: Map<String, Property> = new Map<String, Property>();
         graphical["name"] = new Property("name", "QString", name);
         graphical["to"] = new Property("to", "qreal::Id", "qrm:/ROOT_ID/ROOT_ID/ROOT_ID/ROOT_ID");
         graphical["configuration"] = new Property("configuration", "QPolygon", "0, 0 : 50, 0 : 50, 50 : 0, 50 : ");

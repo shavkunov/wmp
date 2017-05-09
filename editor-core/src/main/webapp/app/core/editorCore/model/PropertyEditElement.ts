@@ -67,8 +67,8 @@ export class PropertyEditElement {
      * @param graph graph, where text joint object is situated.
      */
     public setProperty(property : Property, graph : joint.dia.Graph): void {
-        var width: number = 0.5 * (property.name.length + property.value.length) * PropertyEditElement.fontSize;
-        var height: number = PropertyEditElement.fontSize;
+        let width: number = 0.5 * (property.name.length + property.value.length) * PropertyEditElement.fontSize;
+        let height: number = PropertyEditElement.fontSize;
 
         if (this.textObject) {
             this.textObject.remove();

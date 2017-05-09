@@ -33,16 +33,48 @@ class ImageWithPorts extends joint.shapes.basic.Generic {
         return attrs;
     }
 }
+
+/**
+ * Class which wraps diagram object.
+ */
 export class DefaultDiagramNode implements DiagramNode {
     private logicalId: string;
+
+    /**
+     * Image object on the screen.
+     */
     private jointObject: ImageWithPorts;
+
+    /**
+     * Name and type of diagramm.
+     */
     private name: string;
     private type: string;
+
+    /**
+     * Default properties.
+     */
     private constPropertiesPack: PropertiesPack;
+
+    /**
+     * Properties, which can be changes by user.
+     */
     private changeableProperties: Map<String, Property>;
+
+    /**
+     * Path to image.
+     */
     private imagePath: string;
+
+    /**
+     * Text objects which are on the screen
+     */
     private propertyEditElements: Map<String, PropertyEditElement>;
     private parentNode: DiagramContainer;
+
+    /**
+     * Graph, where diagram is located. Used to set new properties on the screen.
+     */
     private graph : joint.dia.Graph;
 
     private resizeParameters = {
@@ -62,7 +94,10 @@ export class DefaultDiagramNode implements DiagramNode {
         height: 0,
     };
 
-    private lastPointermoveCursor = {
+    /**
+     * Coordinates of last diagram position.
+     */
+    private lastDiagramPosition = {
         x: 0,
         y: 0,
     };
@@ -106,13 +141,20 @@ export class DefaultDiagramNode implements DiagramNode {
         this.parentNode = null;
     }
 
+    /**
+     * Pointermove handler. All parameters comes from default pointermove listener.
+     * @param cellView joint.dia.CellView.
+     * @param evt event.
+     * @param x x position of event.
+     * @param y y position of event.
+     */
     pointermove(cellView, evt, x, y): void {
         console.log("Default diagram node pointer move with x : " + x + " and y : " + y);
         cellView.options.interactive = true;
         var diffX = x - this.lastMousePosition.x;
         var diffY = y - this.lastMousePosition.y;
-        this.lastPointermoveCursor.x = this.getX();
-        this.lastPointermoveCursor.y = this.getY();
+        this.lastDiagramPosition.x = this.getX();
+        this.lastDiagramPosition.y = this.getY();
         console.log("Diagram pos in pointermove : " + this.getX() + ", " + this.getY());
 
         if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing) {
@@ -203,13 +245,16 @@ export class DefaultDiagramNode implements DiagramNode {
         return String(this.boundingBox.width) + ", " + String(this.boundingBox.height);
     }
 
+    /**
+     * Changes text position according to new diagram coordinates.
+     */
     changeTextPosition() : void {
-        var dx =  this.getX() - this.lastPointermoveCursor.x;
-        var dy =  this.getY() - this.lastPointermoveCursor.y;
+        var dx =  this.getX() - this.lastDiagramPosition.x;
+        var dy =  this.getY() - this.lastDiagramPosition.y;
         console.log("Diagram pos in changeTextPosition : " + this.getX() + ", " + this.getY());
-        //console.log("Last cursor was at " + this.lastPointermoveCursor.x + ", " + this.lastPointermoveCursor.y);
         console.log("Change position of text. diffX : " + dx + " diffY : " + dy);
 
+        // no need to call it every time.
         if (dx !== 0 || dy !== 0) {
             for (var propertyKey in this.propertyEditElements) {
                 this.propertyEditElements[propertyKey].setRelativePosition(dx, dy);
@@ -248,7 +293,12 @@ export class DefaultDiagramNode implements DiagramNode {
         return this.constPropertiesPack;
     }
 
-    setProperty(key: string, property: Property ): void {
+    /**
+     * Sets new property and shows it on the screen.
+     * @param key property key
+     * @param property property to set
+     */
+    setProperty(key: string, property: Property): void {
         this.changeableProperties[key] = property;
         console.log("Set new text property : " + property.name + " : " + property.value);
         this.propertyEditElements[key].setProperty(property, this.graph);

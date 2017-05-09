@@ -1,11 +1,24 @@
 import {Property} from "./Property";
 
+/**
+ * Class that wraps text Joint object. Responsible for showing text on screen.
+ */
 export class PropertyEditElement {
+    /**
+     * Default size of text font.
+     */
     public static fontSize = 20;
 
+    /**
+     * Text object which contains text information.
+     */
     private textObject: joint.shapes.basic.Text;
-    private lastX: number;
-    private lastY: number;
+
+    /**
+     * Current x, y position of text object.
+     */
+    private currentX: number;
+    private currentY: number;
 
     /**
      * Creates property at specified coordinates with specified name and value.
@@ -17,8 +30,8 @@ export class PropertyEditElement {
     constructor(x : number, y : number, property : Property, graph : joint.dia.Graph) {
         console.log("Property edit element constructor");
 
-        this.lastX = x;
-        this.lastY = y;
+        this.currentX = x;
+        this.currentY = y;
         this.setProperty(property, graph);
 
         this.textObject.on("cell:pointermove", (cellView, event, x, y): void => {
@@ -38,23 +51,31 @@ export class PropertyEditElement {
         return (this.textObject.get("position"))['y'];
     }
 
+    /**
+     * Sets the position of text.
+     * @param x x axis coordinate
+     * @param y y axis coordinate
+     */
     public setPosition(x: number, y: number): void {
         console.log("Setting text position with x : " + x + " and y : " + y);
         this.textObject.position(x, y);
     }
 
+    /**
+     * Sets new property. Removes old and replace it with new one property on the same position.
+     * @param property property to set.
+     * @param graph graph, where text joint object is situated.
+     */
     public setProperty(property : Property, graph : joint.dia.Graph): void {
         var width: number = 0.5 * (property.name.length + property.value.length) * PropertyEditElement.fontSize;
         var height: number = PropertyEditElement.fontSize;
 
         if (this.textObject) {
-            this.lastX = this.getX();
-            this.lastY = this.getY();
             this.textObject.remove();
         }
 
         this.textObject = new  joint.shapes.basic.Text({
-            position: { x: this.lastX, y: this.lastY },
+            position: { x: this.currentX, y: this.currentY },
             size: { width: width, height: height },
             attrs: {
                 text: {
@@ -66,9 +87,14 @@ export class PropertyEditElement {
         graph.addCell(this.textObject);
     }
 
+    /**
+     * Sets relative position. In other words: it moves text object by appending coordinates respectively.
+     * @param deltaX x coordinate change
+     * @param deltaY y coordinate change
+     */
     public setRelativePosition(deltaX : number, deltaY : number): void {
-        this.lastX = this.getX() + deltaX;
-        this.lastY = this.getY() + deltaY;
-        this.setPosition(this.lastX, this.lastY);
+        this.currentX = this.getX() + deltaX;
+        this.currentY = this.getY() + deltaY;
+        this.setPosition(this.currentX, this.currentY);
     }
 }

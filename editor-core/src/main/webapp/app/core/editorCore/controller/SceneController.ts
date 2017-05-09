@@ -85,40 +85,40 @@ export class SceneController {
 
     public createLink(sourceId: string, target: any): void {
 
-        var link: joint.dia.Link = this.scene.getCurrentLinkType();
+        let link: joint.dia.Link = this.scene.getCurrentLinkType();
         link.set({
             source: { id: sourceId },
             target: target
         });
 
-        var nodeType: NodeType = this.diagramEditorController.getNodeType(this.scene.getCurrentLinkTypeName());
-        var typeProperties: Map<String, Property> = nodeType.getPropertiesMap();
+        let nodeType: NodeType = this.diagramEditorController.getNodeType(this.scene.getCurrentLinkTypeName());
+        let typeProperties: Map<String, Property> = nodeType.getPropertiesMap();
 
-        var linkProperties: Map<String, Property> = new Map<String, Property>();
-        for (var property in typeProperties) {
+        let linkProperties: Map<String, Property> = new Map<String, Property>();
+        for (let property in typeProperties) {
             linkProperties[property] = new Property(typeProperties[property].name,
                 typeProperties[property].type, typeProperties[property].value);
         }
 
-        var linkObject: Link = new Link(link, nodeType.getShownName(), nodeType.getName(), linkProperties);
+        let linkObject: Link = new Link(link, nodeType.getShownName(), nodeType.getName(), linkProperties);
 
         this.makeAndExecuteCreateLinkCommand(linkObject);
     }
 
     public createNode(type: string, x: number, y: number, subprogramId?: string, subprogramName?: string): void {
-        var image: string = this.diagramEditorController.getNodeType(type).getImage();
-        var name: string = this.diagramEditorController.getNodeType(type).getName();
+        let image: string = this.diagramEditorController.getNodeType(type).getImage();
+        let name: string = this.diagramEditorController.getNodeType(type).getName();
 
-        var typeProperties: Map<String, Property> = this.diagramEditorController.getNodeType(type).getPropertiesMap();
+        let typeProperties: Map<String, Property> = this.diagramEditorController.getNodeType(type).getPropertiesMap();
 
-        var nodeProperties: Map<String, Property> = new Map<String, Property>();
-        for (var property in typeProperties) {
+        let nodeProperties: Map<String, Property> = new Map<String, Property>();
+        for (let property in typeProperties) {
             nodeProperties[property] = new Property(typeProperties[property].name, typeProperties[property].type,
                 typeProperties[property].value);
         }
 
-        var node: DiagramNode;
-        if (subprogramId) {
+        let node: DiagramNode;
+        if (subprogramId !== null && typeof subprogramId !== 'undefined') {
             node = new SubprogramNode(subprogramName, type, x, y, DefaultSize.DEFAULT_NODE_WIDTH,
                 DefaultSize.DEFAULT_NODE_HEIGHT, nodeProperties, image, subprogramId);
         } else {
@@ -130,22 +130,22 @@ export class SceneController {
                     DefaultSize.DEFAULT_NODE_HEIGHT, nodeProperties, image);
         }
 
-        var command: Command = new MultiCommand([this.paperCommandFactory.makeCreateNodeCommand(node),
+        let command: Command = new MultiCommand([this.paperCommandFactory.makeCreateNodeCommand(node),
             this.paperCommandFactory.makeChangeCurrentElementCommand(node, this.currentElement)]);
         this.undoRedoController.addCommand(command);
         command.execute();
     }
 
     public createNodeInEventPositionFromNames(names: string[], event): void {
-        var offsetX = (event.pageX - $("#" + this.scene.getId()).offset().left +
+        let offsetX = (event.pageX - $("#" + this.scene.getId()).offset().left +
             $("#" + this.scene.getId()).scrollLeft()) / this.scene.getZoom();
-        var offsetY = (event.pageY - $("#" + this.scene.getId()).offset().top +
+        let offsetY = (event.pageY - $("#" + this.scene.getId()).offset().top +
             $("#" + this.scene.getId()).scrollTop()) / this.scene.getZoom();
-        var gridSize: number = this.scene.getGridSize();
+        let gridSize: number = this.scene.getGridSize();
         offsetX -= offsetX % gridSize;
         offsetY -= offsetY % gridSize;
 
-        var filteredNames: string[] = names.filter((type: string) => {
+        let filteredNames: string[] = names.filter((type: string) => {
             return this.diagramEditorController.getNodeType(type) !== undefined;
         });
 
@@ -157,8 +157,8 @@ export class SceneController {
             return;
         }
 
-        var items = [];
-        for (var i = 0; i < filteredNames.length; ++i) {
+        let items = [];
+        for (let i = 0; i < filteredNames.length; ++i) {
             items.push(
                 {
                     "name": filteredNames[i],
@@ -167,8 +167,8 @@ export class SceneController {
                 });
         }
 
-        var contextMenu = new ContextMenu();
-        var menuDiv = document.createElement("div");
+        let contextMenu = new ContextMenu();
+        let menuDiv = document.createElement("div");
         menuDiv.className = "gestures-menu";
         menuDiv.style.left = event.x + "px";
         menuDiv.style.top = event.y + "px";
@@ -177,18 +177,19 @@ export class SceneController {
     }
 
     public createLinkBetweenCurrentAndEventTargetElements(event): void {
-        var controller = this;
-        var elementBelow = this.getElementBelow(event, function(cell: joint.dia.Element) {
+        let controller = this;
+        let elementBelow = this.getElementBelow(event, function (cell: joint.dia.Element) {
             return !(cell instanceof joint.dia.Link || cell.id === controller.currentElement.getJointObject().id) && controller.rightClickFlag;
         });
-        if (elementBelow) {
+
+        if (elementBelow !== null && typeof elementBelow !== 'undefined') {
             this.createLink(this.currentElement.getJointObject().id, {id: elementBelow.id});
         }
     }
 
     public changeCurrentElement(element: DiagramElement): void {
         if (element !== this.currentElement) {
-            var changeCurrentElementCommand: Command = this.paperCommandFactory.makeChangeCurrentElementCommand(element,
+            let changeCurrentElementCommand: Command = this.paperCommandFactory.makeChangeCurrentElementCommand(element,
                 this.currentElement);
             this.undoRedoController.addCommand(changeCurrentElementCommand);
             changeCurrentElementCommand.execute();
@@ -196,17 +197,18 @@ export class SceneController {
     }
 
     public makeAndExecuteCreateLinkCommand(link: Link): void {
-        var createLinkCommand: Command = this.paperCommandFactory.makeCreateLinkCommand(link);
+        let createLinkCommand: Command = this.paperCommandFactory.makeCreateLinkCommand(link);
         this.undoRedoController.addCommand(createLinkCommand);
         createLinkCommand.execute();
     }
 
     public setCurrentElement(element: DiagramElement): void {
-        if (this.currentElement) {
+        if (this.currentElement !== null && typeof this.currentElement !== 'undefined') {
             this.unselectElement(this.currentElement.getJointObject());
         }
+
         this.currentElement = element;
-        if (element) {
+        if (element !== null && typeof element !== 'undefined') {
             this.selectElement(this.currentElement.getJointObject());
             this.diagramEditorController.setNodeProperties(element);
         } else {
@@ -223,7 +225,7 @@ export class SceneController {
     }
 
     public removeElement(element: DiagramElement): void {
-        if (element) {
+        if (element !== null && typeof element !== 'undefined') {
             if (element instanceof DefaultDiagramNode) {
                 this.scene.removeNode(element.getJointObject().id);
             } else {
@@ -249,20 +251,21 @@ export class SceneController {
         this.clickFlag = true;
         this.rightClickFlag = false;
 
-        var element: DiagramElement = this.scene.getNodeById(cellView.model.id) ||
+        let element: DiagramElement = this.scene.getNodeById(cellView.model.id) ||
             this.scene.getLinkById(cellView.model.id);
         this.changeCurrentElement(element);
 
         if (this.scene.getNodeById(cellView.model.id) && event.button == MouseButton.left) {
-            var node: DiagramNode = this.scene.getNodeById(cellView.model.id);
+            let node: DiagramNode = this.scene.getNodeById(cellView.model.id);
             this.lastCellMouseDownPosition.x = node.getX();
             this.lastCellMouseDownPosition.y = node.getY();
-            var bbox = cellView.getBBox();
+            let bbox = cellView.getBBox();
             this.lastCellMouseDownSize.width = bbox.width;
             this.lastCellMouseDownSize.height = bbox.height;
             cellView.highlight(cellView.model.id);
             node.initResize(cellView.getBBox(), x, y, 20);
         }
+
         if (event.button == MouseButton.right) {
             this.rightClickFlag = true;
         }
@@ -277,10 +280,10 @@ export class SceneController {
 
             });
         } else if (event.button == MouseButton.left){
-            var node: DiagramNode = this.scene.getNodeById(cellView.model.id);
-            if (node) {
+            let node: DiagramNode = this.scene.getNodeById(cellView.model.id);
+            if (node !== null && typeof node !== 'undefined') {
                 if (node.isResizing()) {
-                    var bbox = cellView.getBBox();
+                    let bbox = cellView.getBBox();
                     let command: Command = this.paperCommandFactory.makeResizeCommand(
                         node,
                         this.lastCellMouseDownSize.width,
@@ -301,8 +304,8 @@ export class SceneController {
 
     private cellPointermoveListener(cellView, event, x, y): void {
         this.clickFlag = false;
-        var node: DiagramNode = this.scene.getNodeById(cellView.model.id);
-        if (node) {
+        let node: DiagramNode = this.scene.getNodeById(cellView.model.id);
+        if (node !== null && typeof node !== 'undefined') {
             node.pointermove(cellView, event, x, y);
         }
     }
@@ -310,9 +313,9 @@ export class SceneController {
     private moveNode(cellView, node: DiagramNode): void {
         let command: MultiCommand = new MultiCommand([]);
 
-        var dependentNodes: DiagramNode[] = this.getDependentNodes(node);
-        var diffX: number = node.getX() - this.lastCellMouseDownPosition.x;
-        var diffY: number = node.getY() - this.lastCellMouseDownPosition.y;
+        let dependentNodes: DiagramNode[] = this.getDependentNodes(node);
+        let diffX: number = node.getX() - this.lastCellMouseDownPosition.x;
+        let diffY: number = node.getY() - this.lastCellMouseDownPosition.y;
         dependentNodes.forEach((curNode: DiagramNode) => command.add(this.paperCommandFactory.makeMoveCommand(
             curNode,
             curNode.getX() - diffX,
@@ -322,10 +325,10 @@ export class SceneController {
             this.scene.getZoom(),
             cellView)));
 
-        var parent: DiagramContainer = <DiagramContainer> this.scene.getNodeById(node.getJointObject().get('parent'));
-        var oldParent: DiagramContainer = (node).getParentNode();
+        let parent: DiagramContainer = <DiagramContainer> this.scene.getNodeById(node.getJointObject().get('parent'));
+        let oldParent: DiagramContainer = (node).getParentNode();
         if (parent !== oldParent) {
-            var embedCommand = new EmbedCommand(node, parent, oldParent);
+            let embedCommand = new EmbedCommand(node, parent, oldParent);
             embedCommand.execute();
             command.add(embedCommand);
         }
@@ -333,16 +336,16 @@ export class SceneController {
     }
 
     private initDropPaletteElementListener(): void {
-        var controller: SceneController = this;
-        var paper: DiagramScene = this.scene;
+        let controller: SceneController = this;
+        let paper: DiagramScene = this.scene;
 
         $("#" + this.scene.getId()).droppable({
             drop: function(event, ui) {
-                var topElementPos: number = (ui.offset.top - $(this).offset().top + $(this).scrollTop()) /
+                let topElementPos: number = (ui.offset.top - $(this).offset().top + $(this).scrollTop()) /
                     paper.getZoom();
-                var leftElementPos: number = (ui.offset.left - $(this).offset().left + $(this).scrollLeft()) /
+                let leftElementPos: number = (ui.offset.left - $(this).offset().left + $(this).scrollLeft()) /
                     paper.getZoom();
-                var gridSize: number = paper.getGridSize();
+                let gridSize: number = paper.getGridSize();
                 topElementPos -= topElementPos % gridSize;
                 leftElementPos -= leftElementPos % gridSize;
 
@@ -352,8 +355,9 @@ export class SceneController {
                     var elementBelow = controller.getElementBelow(event, function(cell: joint.dia.Element) {
                         return !(cell instanceof joint.dia.Link);
                     });
-                    if (elementBelow) {
-                        var bBox = elementBelow.getBBox();
+
+                    if (elementBelow !== null && typeof elementBelow !== 'undefined') {
+                        let bBox = elementBelow.getBBox();
                         controller.createLink(elementBelow.id, {
                             x: bBox.x + bBox.width + controller.scene.getGridSize() * 2,
                             y: bBox.y + bBox.height / 2
@@ -368,20 +372,20 @@ export class SceneController {
     }
 
     private selectElement(jointObject): void {
-        var jQueryEl = this.scene.findViewByModel(jointObject).$el;
-        var oldClasses = jQueryEl.attr('class');
+        let jQueryEl = this.scene.findViewByModel(jointObject).$el;
+        let oldClasses = jQueryEl.attr('class');
         jQueryEl.attr('class', oldClasses + ' selected');
     }
 
     private unselectElement(jointObject): void {
         $('input:text').blur();
-        var jQueryEl = this.scene.findViewByModel(jointObject).$el;
-        var removedClass = jQueryEl.attr('class').replace(new RegExp('(\\s|^)selected(\\s|$)', 'g'), '$2');
+        let jQueryEl = this.scene.findViewByModel(jointObject).$el;
+        let removedClass = jQueryEl.attr('class').replace(new RegExp('(\\s|^)selected(\\s|$)', 'g'), '$2');
         jQueryEl.attr('class', removedClass);
     }
 
     private initCustomContextMenu(): void {
-        var controller = this;
+        let controller = this;
         $("#diagram-area").bind("contextmenu", function (event) {
             event.preventDefault();
         });
@@ -409,9 +413,9 @@ export class SceneController {
     }
 
     private removeCurrentElement(): void {
-        var removedNodes: Set<DiagramNode> = new Set<DiagramNode>();
-        var removedLinks: Set<Link> = new Set<Link>();
-        var multiCommand: MultiCommand = new MultiCommand([this.paperCommandFactory.makeChangeCurrentElementCommand(null,
+        let removedNodes: Set<DiagramNode> = new Set<DiagramNode>();
+        let removedLinks: Set<Link> = new Set<Link>();
+        let multiCommand: MultiCommand = new MultiCommand([this.paperCommandFactory.makeChangeCurrentElementCommand(null,
             this.currentElement)]);
 
         if (this.currentElement instanceof Link) {
@@ -442,13 +446,14 @@ export class SceneController {
     }
 
     private getDependentNodes(node: DiagramNode): DiagramNode[] {
-        var elements: DiagramNode[] = [];
+        let elements: DiagramNode[] = [];
         if (node instanceof DiagramContainer) {
-            var embeddedCells: joint.dia.Cell[] = node.getJointObject().getEmbeddedCells();
-            for (var i = 0; i < embeddedCells.length; i++) {
-                var diagramNode: DiagramNode = this.scene.getNodeById(embeddedCells[i].id);
-                if (diagramNode)
+            let embeddedCells: joint.dia.Cell[] = node.getJointObject().getEmbeddedCells();
+            for (let i in embeddedCells) {
+                let diagramNode: DiagramNode = this.scene.getNodeById(embeddedCells[i].id);
+                if (diagramNode !== null && typeof diagramNode !== 'undefined') {
                     elements.push(...this.getDependentNodes(diagramNode));
+                }
             }
         }
         elements.push(node);
@@ -456,28 +461,28 @@ export class SceneController {
     }
 
     private initPropertyEditorListener(): void {
-        var controller = this;
+        let controller = this;
         $(document).on('focus', ".property-edit-element input", function() {
             controller.changeCurrentElement(controller.scene.getNodeById($(this).data("id")));
         });
     }
 
     private getElementBelow(event: any, checker?: (cell: joint.dia.Element) => boolean): joint.dia.Element {
-        var diagramPaper: HTMLDivElement = <HTMLDivElement> document.getElementById(this.scene.getId());
-        var chosenElement: joint.dia.Element = null;
-        var chosenWidth = -1;
-        var cells: joint.dia.Element[] = this.diagramEditorController.getGraph().get('cells');
+        let diagramPaper: HTMLDivElement = <HTMLDivElement> document.getElementById(this.scene.getId());
+        let chosenElement: joint.dia.Element = null;
+        let chosenWidth = -1;
+        let cells: joint.dia.Element[] = this.diagramEditorController.getGraph().get('cells');
         cells.forEach((cell: joint.dia.Element) => {
             if (checker && !checker(cell))
                 return false;
 
-            var mXBegin = cell.getBBox().x;
-            var mYBegin = cell.getBBox().y;
-            var mXEnd = cell.getBBox().x + cell.getBBox().width;
-            var mYEnd = cell.getBBox().y + cell.getBBox().height;
-            var leftElementPos: number = (event.pageX - $(diagramPaper).offset().left + $(diagramPaper).scrollLeft()) /
+            let mXBegin = cell.getBBox().x;
+            let mYBegin = cell.getBBox().y;
+            let mXEnd = cell.getBBox().x + cell.getBBox().width;
+            let mYEnd = cell.getBBox().y + cell.getBBox().height;
+            let leftElementPos: number = (event.pageX - $(diagramPaper).offset().left + $(diagramPaper).scrollLeft()) /
                 this.scene.getZoom();
-            var topElementPos: number = (event.pageY - $(diagramPaper).offset().top + $(diagramPaper).scrollTop()) /
+            let topElementPos: number = (event.pageY - $(diagramPaper).offset().top + $(diagramPaper).scrollTop()) /
                 this.scene.getZoom();
 
             if ((mXBegin <= leftElementPos) && (mXEnd >= leftElementPos)

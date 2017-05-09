@@ -16,10 +16,10 @@ export class DiagramScene extends joint.dia.Paper {
     private zoom: number;
 
     constructor(id: string, graph: joint.dia.Graph) {
-        var htmlId = id;
-        var gridSize = 25;
-        var zoomAttr: number = parseFloat($("#" + htmlId).attr("zoom"));
-        var nodesMap = new Map<String, DiagramNode>();
+        let htmlId = id;
+        let gridSize = 25;
+        let zoomAttr: number = parseFloat($("#" + htmlId).attr("zoom"));
+        let nodesMap = new Map<String, DiagramNode>();
 
         super({
             el: $('#' + htmlId),
@@ -91,8 +91,8 @@ export class DiagramScene extends joint.dia.Paper {
 
     public addNodesFromMap(nodesMap: Map<String, DiagramNode>): void {
         $.extend(this.nodesMap, nodesMap);
-        for (var nodeId in nodesMap) {
-            var node: DiagramNode = nodesMap[nodeId];
+        for (let nodeId in nodesMap) {
+            let node: DiagramNode = nodesMap[nodeId];
             if (node instanceof SubprogramNode) {
                 this.addSubprogramNode(<SubprogramNode> node);
             } else {
@@ -103,8 +103,8 @@ export class DiagramScene extends joint.dia.Paper {
 
     public addLinksFromMap(linksMap: Map<String, Link>): void {
         $.extend(this.linksMap, linksMap);
-        for (var linkId in linksMap) {
-            var link: Link = linksMap[linkId];
+        for (let linkId in linksMap) {
+            let link: Link = linksMap[linkId];
             this.addLink(link);
         }
     }
@@ -119,18 +119,18 @@ export class DiagramScene extends joint.dia.Paper {
     }
 
     public removeNode(nodeId: string): void {
-        var node: DiagramNode = this.nodesMap[nodeId];
+        let node: DiagramNode = this.nodesMap[nodeId];
 
-        var links = this.graph.getConnectedLinks(node.getJointObject(), { inbound: true, outbound: true });
+        let links = this.graph.getConnectedLinks(node.getJointObject(), {inbound: true, outbound: true});
 
         links.forEach((link) => {
             delete this.linksMap[link.id];
         });
 
         node.getJointObject().remove();
-        if (node.getPropertyEditElements()) {
-            var textElements: Map<String, PropertyEditElement> = node.getPropertyEditElements();
-            for (var propertyKey in textElements) {
+        let textElements: Map<String, PropertyEditElement> = node.getPropertyEditElements();
+        if (textElements !== null && typeof textElements !== 'undefined') {
+            for (let propertyKey in textElements) {
                 textElements[propertyKey].getTextObject().remove();
             }
         }
@@ -138,28 +138,28 @@ export class DiagramScene extends joint.dia.Paper {
     }
 
     public getConnectedLinkObjects(node: DiagramNode): Link[] {
-        var links = this.graph.getConnectedLinks(node.getJointObject(), { inbound: true, outbound: true });
-        var linkObjects: Link[] = [];
+        let links = this.graph.getConnectedLinks(node.getJointObject(), {inbound: true, outbound: true});
+        let linkObjects: Link[] = [];
 
         links.forEach((link) => linkObjects.push(this.linksMap[link.id]));
         return linkObjects;
     }
 
     public removeLink(linkId: string): void {
-        var link: Link = this.linksMap[linkId];
+        let link: Link = this.linksMap[linkId];
         link.getJointObject().remove();
         delete this.linksMap[linkId];
     }
 
     public clear(): void {
-        for (var node in this.nodesMap) {
+        for (let node in this.nodesMap) {
             this.removeNode(node);
         }
         this.linksMap = new Map<String, Link>();
     }
 
     public addSubprogramNode(node: SubprogramNode): void {
-        var textObject: joint.shapes.basic.Text = node.getTextObject();
+        let textObject: joint.shapes.basic.Text = node.getTextObject();
         node.getJointObject().embed(textObject);
         this.graph.addCell(textObject);
         this.addNode(node);

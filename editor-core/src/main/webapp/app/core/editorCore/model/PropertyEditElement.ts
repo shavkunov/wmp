@@ -70,7 +70,7 @@ export class PropertyEditElement {
         let width: number = 0.5 * (property.name.length + property.value.length) * PropertyEditElement.fontSize;
         let height: number = PropertyEditElement.fontSize;
 
-        if (this.textObject) {
+        if (this.textObject !== null && typeof this.textObject !== 'undefined') {
             this.textObject.remove();
         }
 

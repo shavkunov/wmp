@@ -113,7 +113,7 @@ export class DefaultDiagramNode implements DiagramNode {
         this.boundingBox.height = height;
 
         this.constPropertiesPack = DefaultDiagramNode.getDefaultConstPropertiesPack(name);
-        if (notDefaultConstProperties) {
+        if (notDefaultConstProperties !== null && typeof notDefaultConstProperties !== 'undefined') {
             $.extend(this.constPropertiesPack.logical, notDefaultConstProperties.logical);
             $.extend(this.constPropertiesPack.graphical, notDefaultConstProperties.graphical);
         }
@@ -129,7 +129,7 @@ export class DefaultDiagramNode implements DiagramNode {
             }
         };
 
-        if (id) {
+        if (id !== null && typeof id !== 'undefined') {
             jQuery.extend(jointObjectAttributes, {id: id});
         }
 
@@ -148,7 +148,7 @@ export class DefaultDiagramNode implements DiagramNode {
      * @param x x position of event.
      * @param y y position of event.
      */
-    pointermove(cellView, evt, x, y): void {
+    pointermove(cellView: joint.dia.CellView, evt, x: number, y: number): void {
         console.log("Default diagram node pointer move with x : " + x + " and y : " + y);
         cellView.options.interactive = true;
         let diffX = x - this.lastMousePosition.x;
@@ -272,13 +272,18 @@ export class DefaultDiagramNode implements DiagramNode {
     }
 
     setParentNode(parent: DiagramContainer): void {
-        if (parent === this.parentNode)
+        if (parent === this.parentNode) {
             return;
-        if (this.parentNode)
+        }
+
+        if (this.parentNode !== null && typeof this.parentNode !== 'undefined') {
             this.parentNode.getJointObject().unembed(this.getJointObject());
+        }
+
         this.parentNode = parent;
-        if (parent)
+        if (parent !== null && typeof parent !== 'undefined') {
             parent.getJointObject().embed(this.getJointObject());
+        }
     }
 
     getImagePath(): string {

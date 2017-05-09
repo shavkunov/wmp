@@ -143,12 +143,12 @@ export class DefaultDiagramNode implements DiagramNode {
 
     /**
      * Pointermove handler. All parameters comes from default pointermove listener.
-     * @param cellView joint.dia.CellView.
+     * @param cellView
      * @param evt event.
      * @param x x position of event.
      * @param y y position of event.
      */
-    pointermove(cellView: joint.dia.CellView, evt, x: number, y: number): void {
+    pointermove(cellView, evt, x: number, y: number): void {
         console.log("Default diagram node pointer move with x : " + x + " and y : " + y);
         cellView.options.interactive = true;
         let diffX = x - this.lastMousePosition.x;
@@ -180,7 +180,8 @@ export class DefaultDiagramNode implements DiagramNode {
     initPropertyEditElements(zoom: number, graph: joint.dia.Graph): void {
         this.graph = graph;
         let parentPosition = this.getJointObjectPagePosition(zoom);
-        let propertyEditElementX = parentPosition.x + (<number> (this.boundingBox.width - 50));
+        let xIndentFromParent: number = (this.boundingBox.width - 50);
+        let propertyEditElementX = parentPosition.x + xIndentFromParent;
         let propertyEditElementY = parentPosition.y + this.boundingBox.height;
         let delta = PropertyEditElement.fontSize;
 
@@ -268,7 +269,7 @@ export class DefaultDiagramNode implements DiagramNode {
 
     setSize(width: number, height: number, cellView : joint.dia.CellView): void {
         let model = <joint.dia.Element> cellView.model;
-        model.resize(width - 2, height);
+        model.resize(width, height);
     }
 
     setParentNode(parent: DiagramContainer): void {

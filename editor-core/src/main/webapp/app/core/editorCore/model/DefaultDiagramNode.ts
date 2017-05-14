@@ -47,9 +47,13 @@ export class DefaultDiagramNode implements DiagramNode {
     private jointObject: ImageWithPorts;
 
     /**
-     * Name and type of diagram.
+     * Name of diagram.
      */
     private name: string;
+
+    /**
+     * Type of diagram.
+     */
     private type: string;
 
     /**
@@ -58,7 +62,7 @@ export class DefaultDiagramNode implements DiagramNode {
     private constPropertiesPack: PropertiesPack;
 
     /**
-     * Properties, which can be changes by user.
+     * Properties, which can be changed by user.
      */
     private changeableProperties: Map<String, Property>;
 
@@ -74,7 +78,7 @@ export class DefaultDiagramNode implements DiagramNode {
     private parentNode: DiagramContainer;
 
     /**
-     * Graph, where diagram is located. Used to set new properties on the screen.
+     * Graph, where diagram and it properties is located.
      */
     private graph : joint.dia.Graph;
 
@@ -134,7 +138,6 @@ export class DefaultDiagramNode implements DiagramNode {
             jQuery.extend(jointObjectAttributes, {id: id});
         }
 
-        console.log("default diagram node constructor");
         this.propertyEditElements = new Map();
         this.jointObject = new ImageWithPorts(jointObjectAttributes);
         this.changeableProperties = properties;
@@ -150,13 +153,11 @@ export class DefaultDiagramNode implements DiagramNode {
      * @param y y position of event.
      */
     pointermove(cellView, evt, x: number, y: number): void {
-        console.log("Default diagram node pointer move with x : " + x + " and y : " + y);
         cellView.options.interactive = true;
         let diffX = x - this.lastMousePosition.x;
         let diffY = y - this.lastMousePosition.y;
         this.lastDiagramPosition.x = this.getX();
         this.lastDiagramPosition.y = this.getY();
-        console.log("Diagram pos in pointermove : " + this.getX() + ", " + this.getY());
 
         if (this.resizeParameters.isBottomResizing || this.resizeParameters.isRightResizing) {
             cellView.options.interactive = false;
@@ -186,12 +187,9 @@ export class DefaultDiagramNode implements DiagramNode {
         let propertyEditElementY = parentPosition.y + this.boundingBox.height;
         let delta = PropertyEditElement.fontSize;
 
-        console.log("Init edit elements");
-
         for (let propertyKey in this.changeableProperties) {
             let property = this.changeableProperties[propertyKey];
             if (property.type === "string") {
-                console.log("Init of property with name " + property.name + " and value " + property.value);
                 let diagramCenterX = propertyEditElementX + DefaultSize.DEFAULT_NODE_WIDTH / 2;
                 let diagramCenterY = propertyEditElementY;
 
@@ -202,7 +200,6 @@ export class DefaultDiagramNode implements DiagramNode {
                 this.propertyEditElements[propertyKey] = propertyEditElement;
             }
         }
-        console.log("End of init edit elements");
     }
 
     getTextProperties() : joint.shapes.basic.Text[] {
@@ -253,8 +250,6 @@ export class DefaultDiagramNode implements DiagramNode {
     changeTextPosition() : void {
         let dx = this.getX() - this.lastDiagramPosition.x;
         let dy = this.getY() - this.lastDiagramPosition.y;
-        console.log("Diagram pos in changeTextPosition : " + this.getX() + ", " + this.getY());
-        console.log("Change position of text. diffX : " + dx + " diffY : " + dy);
 
         // no need to call it every time.
         if (dx !== 0 || dy !== 0) {
@@ -307,7 +302,6 @@ export class DefaultDiagramNode implements DiagramNode {
      */
     setProperty(key: string, property: Property): void {
         this.changeableProperties[key] = property;
-        console.log("Set new text property : " + property.name + " : " + property.value);
         this.propertyEditElements[key].setProperty(property, this.graph);
         let propertyChangedEvent = new CustomEvent('property-changed', {
             detail: {

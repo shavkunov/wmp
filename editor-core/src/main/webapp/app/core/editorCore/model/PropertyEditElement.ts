@@ -23,7 +23,6 @@ export class PropertyEditElement {
      * @param graph graph for setting text on the plane.
      */
     constructor(x: number, y: number, property: Property, graph: joint.dia.Graph) {
-        console.log("Property edit element constructor");
         this.createTextObject(x, y, property, graph);
 
         this.jointObject.on("cell:pointermove", (cellView, event, x, y): void => {
@@ -57,10 +56,16 @@ export class PropertyEditElement {
      * @param y y axis coordinate
      */
     public setPosition(x: number, y: number): void {
-        console.log("Setting text position with x : " + x + " and y : " + y);
         this.jointObject.position(x, y);
     }
 
+    /**
+     * Creates new text object. Center of this text will be located by specified coordinates.
+     * @param x x coordinate of center.
+     * @param y y coordinate of center.
+     * @param property new property with text in it.
+     * @param graph graph, where text joint object is situated.
+     */
     private createTextObject(x: number, y: number, property: Property, graph : joint.dia.Graph) {
         let text = property.name + " : " + property.value;
         let width: number = 0.5 * text.length * PropertyEditElement.fontSize;

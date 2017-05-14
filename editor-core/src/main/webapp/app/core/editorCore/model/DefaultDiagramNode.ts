@@ -4,6 +4,7 @@ import {PropertyEditElement} from "./PropertyEditElement";
 import {UIDGenerator} from "../controller/UIDGenerator";
 import {DiagramNode} from "./DiagramNode";
 import {DiagramContainer} from "./DiagramContainer";
+import {DefaultSize} from "../../../common/constants/DefaultSize";
 
 class ImageWithPorts extends joint.shapes.basic.Generic {
     constructor(portsModelInterface: joint.shapes.basic.PortsModelInterface) {
@@ -46,7 +47,7 @@ export class DefaultDiagramNode implements DiagramNode {
     private jointObject: ImageWithPorts;
 
     /**
-     * Name and type of diagramm.
+     * Name and type of diagram.
      */
     private name: string;
     private type: string;
@@ -180,7 +181,7 @@ export class DefaultDiagramNode implements DiagramNode {
     initPropertyEditElements(zoom: number, graph: joint.dia.Graph): void {
         this.graph = graph;
         let parentPosition = this.getJointObjectPagePosition(zoom);
-        let xIndentFromParent: number = (this.boundingBox.width - 50);
+        let xIndentFromParent: number = this.boundingBox.width - 50;
         let propertyEditElementX = parentPosition.x + xIndentFromParent;
         let propertyEditElementY = parentPosition.y + this.boundingBox.height;
         let delta = PropertyEditElement.fontSize;
@@ -191,10 +192,10 @@ export class DefaultDiagramNode implements DiagramNode {
             let property = this.changeableProperties[propertyKey];
             if (property.type === "string") {
                 console.log("Init of property with name " + property.name + " and value " + property.value);
-                let x = propertyEditElementX;
-                let y = propertyEditElementY;
+                let diagramCenterX = propertyEditElementX + DefaultSize.DEFAULT_NODE_WIDTH / 2;
+                let diagramCenterY = propertyEditElementY;
 
-                let propertyEditElement = new PropertyEditElement(x, y, property, graph);
+                let propertyEditElement = new PropertyEditElement(diagramCenterX, diagramCenterY, property, graph);
                 propertyEditElementY += delta;
 
 

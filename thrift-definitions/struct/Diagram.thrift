@@ -5,7 +5,9 @@ struct TProperty {
     2 : string name,
     3 : string value,
     4 : string type,
-    5 : i32 position
+    5 : i32 position,
+    6 : double x,
+    7 : double y,
 }
 
 struct TDefaultDiagramNode {

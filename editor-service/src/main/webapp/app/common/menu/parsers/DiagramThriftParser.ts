@@ -36,10 +36,10 @@ export class DiagramThriftParser extends DiagramJsonParser {
             return 0;
         });
 
-        var x: number = 0;
-        var y: number = 0;
-        var width: number = 0;
-        var height: number = 0;
+        let x: number = 0;
+        let y: number = 0;
+        let width: number = 0;
+        let height: number = 0;
 
         for (var j = 0; j < propertiesObject.length; j++) {
             var propertyName = propertiesObject[j].name;
@@ -51,6 +51,9 @@ export class DiagramThriftParser extends DiagramJsonParser {
             if (typeProperties.hasOwnProperty(propertyName)) {
                 var property:Property = new Property(typeProperties[propertyName].name,
                     typeProperties[propertyName].type, propertiesObject[j].value);
+                let xPropertyPosition: number = propertiesObject[j].x;
+                let yPropertyPosition: number = propertiesObject[j].y;
+                property.setCoordinates(xPropertyPosition, yPropertyPosition);
                 changeableLogicalProperties[propertyName] = property;
             } else if (propertyName === "position") {
                 var position: string = propertiesObject[j].value;

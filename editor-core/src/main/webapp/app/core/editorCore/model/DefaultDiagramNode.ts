@@ -108,8 +108,7 @@ export class DefaultDiagramNode implements DiagramNode {
     };
 
     constructor(name: string, type: string, x: number, y: number, width: number, height: number,
-                properties: Map<String, Property>, imagePath: string, id?: string,
-                notDefaultConstProperties?: PropertiesPack) {
+                properties: Map<String, Property>, imagePath: string, id?: string, notDefaultConstProperties?: PropertiesPack) {
         this.logicalId = UIDGenerator.generate();
         this.name = name;
         this.type = type;
@@ -189,16 +188,36 @@ export class DefaultDiagramNode implements DiagramNode {
 
         for (let propertyKey in this.changeableProperties) {
             let property = this.changeableProperties[propertyKey];
+
             if (property.type === "string") {
+                if (property.coordinates !== undefined) {
+                    this.restorePropertyPositions(graph);
+                    break;
+                }
+
                 let diagramCenterX = propertyEditElementX + DefaultSize.DEFAULT_NODE_WIDTH / 2;
                 let diagramCenterY = propertyEditElementY;
 
-                let propertyEditElement = new PropertyEditElement(diagramCenterX, diagramCenterY, property, graph);
+                let propertyEditElement = new PropertyEditElement(diagramCenterX, diagramCenterY, property, graph, 1);
                 propertyEditElementY += delta;
 
-
+                property.setCoordinates(propertyEditElement.getX(), propertyEditElement.getY());
                 this.propertyEditElements[propertyKey] = propertyEditElement;
             }
+        }
+    }
+
+    restorePropertyPositions(graph: joint.dia.Graph): void {
+        for (let propertyKey in this.changeableProperties) {
+            let property = this.changeableProperties[propertyKey];
+            if (property.type !== "string") {
+                continue;
+            }
+
+            let xPosition = property.coordinates.x;
+            let yPosition = property.coordinates.y;
+            let propertyEditElement = new PropertyEditElement(xPosition, yPosition, property, graph, 0);
+            this.propertyEditElements[propertyKey] = propertyEditElement;
         }
     }
 
@@ -254,7 +273,13 @@ export class DefaultDiagramNode implements DiagramNode {
         // no need to call it every time.
         if (dx !== 0 || dy !== 0) {
             for (let propertyKey in this.propertyEditElements) {
-                this.propertyEditElements[propertyKey].setRelativePosition(dx, dy);
+                let propertyEditElement = this.propertyEditElements[propertyKey];
+                propertyEditElement.setRelativePosition(dx, dy);
+
+                let x: number = propertyEditElement.getX();
+                let y: number = propertyEditElement.getY();
+
+                this.changeableProperties[propertyKey].setCoordinates(x, y);
             }
         }
     }

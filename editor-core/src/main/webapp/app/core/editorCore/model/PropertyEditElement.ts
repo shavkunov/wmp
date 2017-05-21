@@ -21,9 +21,14 @@ export class PropertyEditElement {
      * @param y y center axis coordinate
      * @param property property to set
      * @param graph graph for setting text on the plane.
+     * @param typeOfInit -- temporary. 0 -- loading from the db. 1 init as usual
      */
-    constructor(x: number, y: number, property: Property, graph: joint.dia.Graph) {
+    constructor(x: number, y: number, property: Property, graph: joint.dia.Graph, typeOfInit: number) {
         this.createTextObject(x, y, property, graph);
+
+        if (typeOfInit == 0) {
+            this.setPosition(x, y);
+        }
 
         this.jointObject.on("cell:pointermove", (cellView, event, x, y): void => {
             this.setPosition(x, y);
@@ -57,6 +62,9 @@ export class PropertyEditElement {
      */
     public setPosition(x: number, y: number): void {
         this.jointObject.position(x, y);
+
+        console.log("Current property edit element position. X : " + x + " Y :" + y);
+        console.log("GetX " + this.getX() + " GetY " + this.getY());
     }
 
     /**
@@ -77,7 +85,7 @@ export class PropertyEditElement {
             position: { x: xPosition, y: yPosition },
             size: { width: width, height: height },
             attrs: {
-                rect: { fill: '#F7FE2E',
+                rect: { fill: '#FFFFFF',
                     stroke: '#D35400', 'stroke-width': 1
                 },
                 text: {

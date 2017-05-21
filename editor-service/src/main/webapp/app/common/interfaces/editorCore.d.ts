@@ -19,7 +19,9 @@ declare module "core/editorCore/model/Property" {
         name: string;
         type: string;
         value: string;
+        coordinates;
         constructor(name: string, type: string, value: string);
+        setCoordinates(x, y);
     }
 }
 declare module "core/editorCore/model/PropertiesPack" {
@@ -194,14 +196,13 @@ declare module "core/editorCore/model/Link" {
 declare module "core/editorCore/model/PropertyEditElement" {
     import { Property } from "core/editorCore/model/Property";
     export class PropertyEditElement {
-        private static propertyTemplate;
-        private static template;
-        private htmlElement;
-        constructor(logicalId: string, jointObjectId: string, properties: Map<String, Property>);
-        getHtmlElement(): any;
-        setPosition(x: number, y: number): void;
-        private initInputSize();
-        private initInputAutosize();
+        public getTextObject() : joint.shapes.basic.Rect;
+        getX(): number;
+        getY(): number;
+        public setPosition(x: number, y: number): void;
+        private createTextObject(x: number, y: number, property: Property, graph : joint.dia.Graph);
+        public setProperty(property : Property, graph : joint.dia.Graph): void;
+        public setRelativePosition(deltaX : number, deltaY : number): void;
     }
 }
 declare module "core/editorCore/model/DefaultDiagramNode" {
@@ -218,15 +219,17 @@ declare module "core/editorCore/model/DefaultDiagramNode" {
         private constPropertiesPack;
         private changeableProperties;
         private imagePath;
-        private propertyEditElement;
+        private propertyEditElements;
         private parentNode;
         private resizeParameters;
         private lastMousePosition;
         private boundingBox;
-        constructor(name: string, type: string, x: number, y: number, width: number, height: number, properties: Map<String, Property>, imagePath: string, id?: string, notDefaultConstProperties?: PropertiesPack);
+        constructor(name: string, type: string, x: number, y: number, width: number, height: number,
+                    properties: Map<String, Property>, imagePath: string, id?: string, notDefaultConstProperties?: PropertiesPack);
         pointermove(cellView: any, evt: any, x: any, y: any): void;
         initPropertyEditElements(zoom: number): void;
-        getPropertyEditElement(): PropertyEditElement;
+        getTextProperties(): joint.shapes.basic.Text[];
+        getPropertyEditElements(): Map<String, PropertyEditElement>
         getLogicalId(): string;
         getName(): string;
         getType(): string;
@@ -262,7 +265,9 @@ declare module "core/editorCore/model/DiagramContainer" {
     import { DiagramNode } from "core/editorCore/model/DiagramNode";
     export class DiagramContainer extends DefaultDiagramNode {
         private childrenNodes;
-        constructor(name: string, type: string, x: number, y: number, width: number, height: number, properties: Map<String, Property>, imagePath: string, id?: string, notDefaultConstProperties?: PropertiesPack);
+        constructor(name: string, type: string, x: number, y: number, width: number, height: number,
+                    properties: Map<String, Property>, imagePath: string, id?: string,
+                    notDefaultConstProperties?: PropertiesPack);
         getChildrenNodes(): Set<DiagramNode>;
         addChild(node: DiagramNode): void;
         removeChild(node: DiagramNode): void;
@@ -281,8 +286,8 @@ declare module "core/editorCore/model/DiagramNode" {
         setPosition(x: number, y: number, zoom: number, cellView: joint.dia.CellView): void;
         setSize(width: number, height: number, cellView: joint.dia.CellView): void;
         setParentNode(parent: DiagramContainer): void;
-        getPropertyEditElement(): PropertyEditElement;
-        initPropertyEditElements(zoom: number): void;
+        getPropertyEditElements(): Map<String, PropertyEditElement>
+        getTextProperties(): joint.shapes.basic.Text[];
         initResize(bbox: any, x: number, y: number, paddingPercent: any): void;
         completeResize(): void;
         isResizing(): boolean;
@@ -296,7 +301,9 @@ declare module "core/editorCore/model/SubprogramNode" {
     export class SubprogramNode extends DefaultDiagramNode {
         private subprogramDiagramId;
         private textObject;
-        constructor(name: string, type: string, x: number, y: number, width: number, height: number, properties: Map<String, Property>, imagePath: string, subprogramDiagramId: string, id?: string, notDefaultConstProperties?: PropertiesPack);
+        constructor(name: string, type: string, x: number, y: number, width: number, height: number,
+                    properties: Map<String, Property>, imagePath: string, subprogramDiagramId: string, id?: string,
+                    notDefaultConstProperties?: PropertiesPack);
         getSubprogramDiagramId(): string;
         getTextObject(): joint.shapes.basic.Text;
         setPosition(x: number, y: number, zoom: number, cellView: joint.dia.CellView): void;
